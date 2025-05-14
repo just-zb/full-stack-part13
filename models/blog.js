@@ -1,13 +1,11 @@
 import dotenv from 'dotenv';
+import {DataTypes, Model} from 'sequelize';
+import {sequelize} from "../util/db.js";
+
 dotenv.config();
-import {Model, DataTypes} from 'sequelize';
-import {Sequelize} from 'sequelize';
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: 'postgres',
-    logging: false
-});
 
 class Blog extends Model {}
+
 Blog.init({
     id: {
         type: DataTypes.INTEGER,
@@ -16,7 +14,7 @@ Blog.init({
     },
     author: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     url: {
         type: DataTypes.STRING,

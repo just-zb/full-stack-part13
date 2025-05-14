@@ -1,19 +1,23 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import Blog from "./models/blog.js";
-import blogRouter from './router/blogRouter.js';
+import blogRouter from './controller/blogRouter.js';
 import express from 'express';
+import {connectToDatabase, syncModels} from "./util/db.js";
+import {PORT} from "./util/config.js";
+import errorHandler from "./middleware/errorHandler.js";
+import unknownPoint from "./middleware/unknownPoint.js";
 const app = express();
 app.use(express.json());
-const PORT = process.env.PORT || 3001;
 
-Blog.sync().then(() => console.log('Blog table created successfully!'));
 app.use('/api/blogs', blogRouter);
+app.use(unknownPoint)
+app.use(errorHandler);
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+const start = async () => {
+    await connectToDatabase();
+    await syncModels();
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+start().then(() =>console.log('Server started'));
