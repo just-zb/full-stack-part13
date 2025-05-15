@@ -21,15 +21,4 @@ const connectToDatabase = async () => {
     return null
 }
 
-// Sync all models that aren't already in the database
-const syncModels = async () => {
-    try {
-        await sequelize.sync();
-        console.log('All models were synchronized successfully.');
-    } catch (error) {
-        console.error('Unable to sync the models:', error);
-        return process.exit(1);
-    }
-    return null
-}
-export {sequelize, connectToDatabase, syncModels};
+export {sequelize, connectToDatabase};

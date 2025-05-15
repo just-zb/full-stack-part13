@@ -1,16 +1,30 @@
 import {Router} from 'express';
-import Blog from "../models/blog.js";
-import blogFindHandler from "../middleware/blogFindHandler.js";
+import {blogFindHandler, tokenExtractor} from "../middleware/middleware.js";
+import {User,Blog} from "../models/index.js";
+import {Op} from "sequelize";
 const blogRouter = Router();
 
 // GET api/blogs
 blogRouter.get('/', async (req, res) => {
-        try {
-            const blogs = await Blog.findAll();
-            res.status(200).json(blogs);
-        } catch (error) {
-            res.status(500).send({error: 'Failed to fetch blogs'});
+        // GET /api/blogs?search=react, search by title and author, order by likes desc
+        const search = req.query.search;
+        const order = 'likes';
+        let where = {}
+        if (search) {
+            where[Op.or] = [{title: {[Op.like]: `%${search}%`}}, {author: {[Op.like]: `%${search}%`}}]
         }
+        const blogs = await Blog.findAll(
+            {
+                attributes: {exclude: ['userId']},
+                where,
+                order: [[order, 'DESC']],
+                include: {
+                    model: User,
+                    attributes: {include: ['name']},
+                },
+            }
+        );
+        res.json(blogs);
     }
 );
 // get api/blogs/:id
@@ -19,17 +33,22 @@ blogRouter.get('/:id', blogFindHandler, async (req, res) => {
     }
 );
 // POST api/blogs
-blogRouter.post('/', async (req, res,next) => {
-    const blog = await Blog.create(req.body).catch(() => {
+blogRouter.post('/',tokenExtractor, async (req, res,next) => {
+    const user = await User.findByPk(req.token.id)
+    const blog = await Blog.create({...req.body, userId: user.id,date:new Date()}).catch(() => {
         next(new Error('CreateBlogError'));
     });
     res.status(201).json(blog);
     }
 );
 // delete api/blogs/:id
-blogRouter.delete('/:id', blogFindHandler, async (req, res) => {
-        await req.blog.destroy();
-        res.status(204).end();
+blogRouter.delete('/:id', blogFindHandler,tokenExtractor, async (req, res) => {
+    // only the user who submit the blog can delete it
+    if (req.token.id !== req.blog.userId) {
+        return res.status(401).json({error: 'Unauthorized'});
+    }
+    await req.blog.destroy();
+    res.status(204).end();
     }
 );
 // put api/blogs/:id
