@@ -35,6 +35,9 @@ blogRouter.get('/:id', blogFindHandler, async (req, res) => {
 // POST api/blogs
 blogRouter.post('/',tokenExtractor, async (req, res,next) => {
     const user = await User.findByPk(req.token.id)
+    if (!user) {
+        return res.status(401).json({error: 'User not found'});
+    }
     const blog = await Blog.create({...req.body, userId: user.id,date:new Date()}).catch(() => {
         next(new Error('CreateBlogError'));
     });

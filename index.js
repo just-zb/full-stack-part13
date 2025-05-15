@@ -5,7 +5,7 @@ import userRouter from './controller/userRouter.js';
 import loginRouter from './controller/loginRouter.js';
 import authorRouter from "./controller/authors.js";
 import express from 'express';
-import {connectToDatabase} from "./util/db.js";
+import {connectToDatabase, runMigrations} from "./util/db.js";
 import {PORT} from "./util/config.js";
 import {errorHandler,unknownPoint} from "./middleware/middleware.js";
 const app = express();
@@ -20,6 +20,7 @@ app.use(errorHandler);
 
 const start = async () => {
     await connectToDatabase();
+    await runMigrations();
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
