@@ -15,7 +15,29 @@ userRouter.get('/', async (req, res) => {
 });
 
 userRouter.get('/:id', async (req, res) => {
-    const user = await User.findByPk(req.params.id);
+    const where = {};
+
+    if (req.query.read) {
+        where.read = req.query.read === 'true';
+    }
+    const user = await User.findByPk(req.params.id,{
+        include: [
+            {
+                model: Blog,
+                attributes: {exclude: ['userId']},
+            },
+            {
+                model: Blog,
+                as: 'readingLists',
+                attributes: {exclude: ['userId']},
+                through: {
+                    attributes: ['read'],
+                    where
+                },
+            },
+        ]
+
+    });
     if (user) {
         res.json(user);
     } else {
