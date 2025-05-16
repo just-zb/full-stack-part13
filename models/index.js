@@ -1,6 +1,7 @@
 import User from "./user.js";
 import Blog from "./blog.js";
 import ReadingLists from "./readingLists.js";
+import Sessions from "./sessions.js";
 User.hasMany(Blog)
 Blog.belongsTo(User);
 
@@ -9,4 +10,4 @@ Blog.belongsTo(User);
 // console.log('Models synced');
 User.belongsToMany(Blog, { through: ReadingLists,as: 'readingLists' });
 Blog.belongsToMany(User, { through: ReadingLists,as: 'blogList' });
-export { User, Blog, ReadingLists };
+export { User, Blog, ReadingLists,Sessions };
